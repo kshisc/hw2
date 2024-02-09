@@ -34,5 +34,5 @@ string Book::displayString() const{
 
 void Book::dump(ostream& os) const{
   os << category_ << "\n" << name_ << "\n" << price_ << "\n" << getQty() << "\n" <<
-  isbn_ << "\n" << author_;
+  isbn_ << "\n" << author_ << endl;
 }

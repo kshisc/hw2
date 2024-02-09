@@ -33,5 +33,5 @@ string Movie::displayString() const{
 
 void Movie::dump(ostream& os) const{
   os << category_ << "\n" << name_ << "\n" << price_ << "\n" << getQty() << "\n" <<
-  genre_ << "\n" << rating_;
+  genre_ << "\n" << rating_ << endl;
 }

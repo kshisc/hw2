@@ -17,7 +17,7 @@ std::string convToLower(std::string src)
 set<string> parseStringToWords(string rawWords)
 {
   set<string> words;
-  convToLower(rawWords); 
+  rawWords=convToLower(rawWords); 
 
   char punct[]={',', '.', '\''};
   for(char p:punct){

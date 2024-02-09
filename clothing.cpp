@@ -32,6 +32,6 @@ string Clothing::displayString() const{
 
 void Clothing::dump(ostream& os) const{
   os << category_ << "\n" << name_ << "\n" << price_ << "\n" << getQty() << "\n" <<
-  size_ << "\n" << brand_;
+  size_ << "\n" << brand_ << endl;
 }
 

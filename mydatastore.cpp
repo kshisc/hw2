@@ -7,6 +7,15 @@ MyDataStore::MyDataStore(){
 
 
 MyDataStore::~MyDataStore(){
+	set<Product*>::iterator prodIt;
+	for(prodIt=products.begin(); prodIt!=products.end(); ++prodIt){
+		delete *prodIt;
+	}
+  
+	map<string,User*>::iterator userIt;
+	for(userIt=userMap.begin(); userIt!=userMap.end(); ++userIt){
+		delete (userIt->second);
+	}
 }
 
 
@@ -65,10 +74,18 @@ vector<Product*> MyDataStore::search(vector<string>& terms, int type){
 
 
 void MyDataStore::dump(ostream& ofile){
+	ofile << "<products>" << endl;
   for(Product* p: products){
-    p->dump(cout);
-    cout << endl;
+    p->dump(ofile);
   }
+	ofile << "</products>" << endl;
+
+	ofile << "<users>" << endl;
+  map<string,User*>::iterator userIt;
+	for(userIt=userMap.begin(); userIt!=userMap.end(); ++userIt){
+		(userIt->second)->dump(ofile);
+	}
+	ofile << "</users>" << endl;
 }
 
 
