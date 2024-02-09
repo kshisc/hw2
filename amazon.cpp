@@ -5,10 +5,12 @@
 #include <vector>
 #include <iomanip>
 #include <algorithm>
+
 #include "product.h"
 #include "db_parser.h"
 #include "product_parser.h"
 #include "util.h"
+#include "mydatastore.h"
 
 using namespace std;
 struct ProdNameSorter {
@@ -16,6 +18,7 @@ struct ProdNameSorter {
         return (p1->getName() < p2->getName());
     }
 };
+
 void displayProducts(vector<Product*>& hits);
 
 int main(int argc, char* argv[])
@@ -29,7 +32,7 @@ int main(int argc, char* argv[])
      * Declare your derived DataStore object here replacing
      *  DataStore type to your derived type
      ****************/
-    DataStore ds;
+    MyDataStore ds;
 
 
 
@@ -70,7 +73,7 @@ int main(int argc, char* argv[])
         stringstream ss(line);
         string cmd;
         if((ss >> cmd)) {
-            if( cmd == "AND") {
+            if(cmd == "AND") {
                 string term;
                 vector<string> terms;
                 while(ss >> term) {
@@ -80,7 +83,7 @@ int main(int argc, char* argv[])
                 hits = ds.search(terms, 0);
                 displayProducts(hits);
             }
-            else if ( cmd == "OR" ) {
+            else if (cmd == "OR") {
                 string term;
                 vector<string> terms;
                 while(ss >> term) {
@@ -90,7 +93,7 @@ int main(int argc, char* argv[])
                 hits = ds.search(terms, 1);
                 displayProducts(hits);
             }
-            else if ( cmd == "QUIT") {
+            else if (cmd == "QUIT") {
                 string filename;
                 if(ss >> filename) {
                     ofstream ofile(filename.c_str());
@@ -100,9 +103,25 @@ int main(int argc, char* argv[])
                 done = true;
             }
 	    /* Add support for other commands here */
+            else if (cmd=="ADD") {
+              string username;
+              int hit_num;
+              ss >> username;
+              ss >> hit_num;
+              ds.addtoCart(username, hit_num, hits);
+            }
 
+            else if (cmd=="VIEWCART"){
+              string username;
+              ss >> username;
+              ds.viewCart(username);
+            }
 
-
+            else if (cmd=="BUYCART"){
+              string username;
+              ss >> username;
+              ds.buyCart(username);
+            }
 
             else {
                 cout << "Unknown command" << endl;
@@ -112,6 +131,7 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
+
 
 void displayProducts(vector<Product*>& hits)
 {
