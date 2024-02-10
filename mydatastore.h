@@ -1,5 +1,5 @@
 #include <map>
-#include <queue>
+// #include <queue>
 #include "datastore.h"
 
 class MyDataStore : public DataStore {
@@ -36,7 +36,6 @@ class MyDataStore : public DataStore {
     private:
 		std::set<Product*> products;
     std::map<std::string,std::set<Product*>> prodMap; //maps keyword to products
-		// std::set<User*> users;
     std::map<std::string,User*> userMap;
-    std::map<std::string,std::queue<Product*>> cartMap; //maps user to cart
+    std::map<std::string,std::vector<Product*>> cartMap; //maps user to cart
 };

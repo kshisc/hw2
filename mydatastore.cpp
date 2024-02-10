@@ -7,10 +7,9 @@ MyDataStore::MyDataStore(){
 
 
 MyDataStore::~MyDataStore(){
-	set<Product*>::iterator prodIt;
-	for(prodIt=products.begin(); prodIt!=products.end(); ++prodIt){
-		delete *prodIt;
-	}
+  for(Product* p: products){
+    delete p;
+  }
   
 	map<string,User*>::iterator userIt;
 	for(userIt=userMap.begin(); userIt!=userMap.end(); ++userIt){
@@ -24,17 +23,8 @@ void MyDataStore::addProduct(Product* p){
 
   //map keyword -> products
   set<string> keys = p->keywords();
-  set<string>::iterator setIt;
-  for(setIt=keys.begin(); setIt!=keys.end(); ++setIt){ //iterate through keywords
-    map<string,set<Product*>>::iterator mapIt = prodMap.find(*setIt); //search for keyword in map
-    if(mapIt==prodMap.end()){ //keyword not in map
-      set<Product*> s; //create new set
-      s.insert(p);
-      prodMap.insert(make_pair(*setIt,s));
-    }
-    else{
-      (mapIt->second).insert(p);
-    }
+  for(string k: keys){
+    prodMap[k].insert(p);
   }
 }
 
@@ -49,22 +39,22 @@ vector<Product*> MyDataStore::search(vector<string>& terms, int type){
   set<Product*> s2;
 
   if(type==0){ //AND search
-    for(size_t i=0; i<terms.size(); i++){ //iterate through vector
-      map<string,set<Product*>>::iterator mapIt = prodMap.find(terms[i]); //search for keyword in map
-      if(mapIt!=prodMap.end()){ //keyword exists
-        s1=mapIt->second;
+    for(size_t i=0; i<terms.size(); i++){ //iterate through terms
+      map<string,set<Product*>>::iterator prodIt = prodMap.find(terms[i]);
+      if(prodIt!=prodMap.end()){ //term in map
+        s1=prodIt->second; //get set of products for keyword
+        s2=setIntersection(s1,s2);
       }
-      s2=setIntersection(s1,s2);
 		}
   }
 
   else{ //OR search
-    for(size_t i=0; i<terms.size(); i++){ //iterate through vector
-      map<string,set<Product*>>::iterator mapIt = prodMap.find(terms[i]); //search for keyword in map
-      if(mapIt!=prodMap.end()){ //keyword exists
-        s1=mapIt->second;
+    for(size_t i=0; i<terms.size(); i++){ //iterate through terms
+      map<string,set<Product*>>::iterator prodIt = prodMap.find(terms[i]);
+      if(prodIt!=prodMap.end()){ //keyword in map
+        s1=prodIt->second; //get set of products for keyword
+        s2=setUnion(s1,s2);
       }
-      s2=setUnion(s1,s2);
     }
   }
 
@@ -90,38 +80,26 @@ void MyDataStore::dump(ostream& ofile){
 
 
 void MyDataStore::addtoCart(string user, int index, vector<Product*> hits){
-  queue<Product*> cart;
-
-  map<string,User*>::iterator userIt = userMap.find(user);
-  if(userIt==userMap.end() || index>int(hits.size())){
-    cout << "Invalid request" << endl;
-  }
-
-  map<string,queue<Product*>>::iterator cartIt = cartMap.find(user);
-  if(cartIt==cartMap.end()){ //no cart yet
-    cart.push(hits[index]);
-    cartMap.insert(make_pair(user,cart));
-  }
-  else{
-    cart=cartIt->second;
-    cart.push(hits[index]);
-  }
+	if(userMap.find(user)!=userMap.end() && index<int(hits.size())){
+		cartMap[user].push_back(hits[index]);
+	}
+	else{
+		cout << "Invalid request" << endl;
+	}
 }
 
 
 void MyDataStore::viewCart(string user){
-  map<string,queue<Product*>>::iterator cartIt = cartMap.find(user);
+  map<string,vector<Product*>>::iterator cartIt = cartMap.find(user);
   if(cartIt==cartMap.end()){
     cout << "Invalid username" << endl;
   }
 
   else{
-    queue<Product*> cart=cartIt->second;
+    vector<Product*> cart=cartIt->second;
     size_t i=0;
     while(i<cart.size()){
-      cout << i << " ";
-      cart.front()->displayString();
-      cout << endl;
+      cout << "Item " << i+1 << "\n" << cart[i]->displayString() << endl;
       i++;
 		}
   }
@@ -129,7 +107,7 @@ void MyDataStore::viewCart(string user){
 
 
 void MyDataStore::buyCart(string user){
-  map<string,queue<Product*>>::iterator cartIt = cartMap.find(user);
+  map<string,vector<Product*>>::iterator cartIt = cartMap.find(user);
   if(cartIt==cartMap.end()){
     cout << "Invalid username" << endl;
   }
@@ -138,16 +116,18 @@ void MyDataStore::buyCart(string user){
     map<string,User*>::iterator userIt = userMap.find(user);
     User* u = userIt->second;
 
-    queue<Product*> cart=cartIt->second;
+    vector<Product*> &cart=cartIt->second;
     size_t i=0;
     while(i<cart.size()){ //iterate through cart
-      Product* p = cart.front();
-      if((p->getQty() > 0) && (p->getPrice() < u->getBalance())){
+      Product* p = cart[i];
+      if((p->getQty() > 0) && (p->getPrice() < u->getBalance())){ //enough stock and funds
         u->deductAmount(p->getPrice());
         p->subtractQty(1);
       }
       i++;
 		}
+
+    set<Product*> cartSet(cart.begin(),cart.end()); //remove duplicates
+    cart.assign(cartSet.begin(),cartSet.end());
   }
 }
-
